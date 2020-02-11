@@ -64,6 +64,9 @@
         //     console.log(xhr.response);
         // }
         // xhr.send();
+        // 用jquery发送ajax请求,
+
+        // 一进入页面就发送ajax请求,
         $(function(){
             $.ajax({
                 type:'get',
@@ -78,6 +81,13 @@
                         $('.user_center_link>img').attr('src',backData.data.userPic);
                     }
                 }
+            })
+
+            // 退出登录
+            // 删除token,返回登录页
+            $('.logout').on('click',function(){
+                localStorage.removeItem('token');
+                window.location.href = './login.html';
             })
         })
     </script>

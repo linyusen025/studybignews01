@@ -76,7 +76,7 @@
                 // },
                 url:BigNew.user_info,
                 success:function(backData){
-                    console.log(backData);
+                    // console.log(backData);
                     if(backData.code == 200){
                         $('.user_info>img').attr('src',backData.data.userPic);
                         $('user_info>span>i').text(backData.data.nickname);
@@ -95,9 +95,9 @@
 
             // 三,给左侧的导航栏div设置点击事件
             // 给当前点击的div添加active,其他的移出active
-            // 如果当前点击的是第二个div(文章管理),那他下面的ul就应该是显示成隐藏,隐藏成显示
-            // 给文章管里页签后面的小三角添加类
-            // 默认触发选中第一个ul
+            // 如果当前点击的是第二个div(文章管理),那他下面的ul就应该是显示成隐藏,隐藏成显示slideToggle
+            // 给文章管里页签后面的小三角添加类toggleClass
+            // 默认触发选中第一个ul加一个trigger
             $('.menu>div.level01').on('click',function(){
                 $(this).addClass('active').siblings('div').removeClass('active');
                 if($(this).index() == 1){

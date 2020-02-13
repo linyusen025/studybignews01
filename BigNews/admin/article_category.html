@@ -63,6 +63,8 @@
                 </div>
                 <div class="modal-body">
                     <form>
+                        <!-- 隐藏域 -->
+                        <input type="hidden" id="editId" name="">
                         <div class="form-group">
                             <label for="recipient-name" class="control-label">分类类别:</label>
                             <input type="text" class="form-control" id="recipient-name">
@@ -74,7 +76,7 @@
                     </form>
                 </div>
                 <div class="modal-footer">
-                    <button type="button" class="btn btn-default" data-dismiss="modal">取消</button>
+                    <button type="button" class="btn btn-default btn-cancel" data-dismiss="modal">取消</button>
                     <button type="button" id=btnAddEdit class="btn btn-primary">新增</button>
                 </div>
             </div>
@@ -98,30 +100,92 @@
         // 一进入页面发送ajax请求,获取信息
         // 用模板引擎渲染到页面上
         $(function () {
-            $.ajax({
-                type: 'get',
-                url: BigNew.category_list,
-                success: function (backData) {
-                    // console.log(backData);
-                    if (backData.code == 200) {
-                        let resHtml = template('article_category_temp', backData);
-                        $('tbody').html(resHtml);
+            getData();
+            function getData() {
+                $.ajax({
+                    type: 'get',
+                    url: BigNew.category_list,
+                    success: function (backData) {
+                        // console.log(backData);
+                        if (backData.code == 200) {
+                            let resHtml = template('article_category_temp', backData);
+                            $('tbody').html(resHtml);
+                        }
                     }
-                }
-            })
+                })
+            }
 
             // 二,使用模态框,
             // 先判断到底是新增按钮还是编辑按钮show.bs.modal方法调用后立即触发该事件
             // 可以通过e.relatedTarget属性访问
             $('#myModal').on('show.bs.modal', function (e) {
                 // console.log(e.relatedTarget);
-                if(e.relatedTarget == $('#xinzengfenlei')[0]){
+                if (e.relatedTarget == $('#xinzengfenlei')[0]) {
                     $('#myModalLabel').text('新增类别');
                     $('#btnAddEdit').text('新增').addClass('btn-success').removeClass('btn-primary');
-                }else{
+                } else {
                     $('#myModalLabel').text('编辑类别');
                     $('#btnAddEdit').text('编辑').addClass('btn-primary').removeClass('btn-success');
+                    // 编辑第一步,获取隐藏域里面的内容
+                    $('#editId').val($(e.relatedTarget).attr('data-id'));
+                    $('#recipient-name').val($(e.relatedTarget).parent().prev().prev().text().trim());
+                    $('#message-text').val($(e.relatedTarget).parent().prev().text().trim());
                 }
+            })
+
+            // 三给模态框中的 新增/编辑 按钮设置点击事件
+            // 判断被点击的是新增还是编辑,如果是新增
+            // 新增,获取文本框的内容,发送ajax请求
+            // 请求成功,隐藏模态框,重新加载数据,清空输入框
+            // 四如果被点击的是编辑
+            // 编辑,获取要编辑的类名和别名,id,发送ajax请求
+            // 请求成功,隐藏模态框,重新加载数据,清空输入框
+            $('#btnAddEdit').on('click', function () {
+                if ($(this).hasClass('btn-success')) {
+                    let addName = $('#recipient-name').val().trim();
+                    let addSlug = $('#message-text').val().trim();
+                    $.ajax({
+                        type: 'post',
+                        url: BigNew.category_add,
+                        data: {
+                            name: addName,
+                            slug: addSlug
+                        },
+                        success: function (backData) {
+                            if (backData.code == 201) {
+                                $('#myModal').modal('hide');
+                                getData();
+                                $('#recipient-name').val();
+                                $('#message-text').val()
+                            }
+                        }
+                    })
+                }else{
+                    let editId = $('#editId').val().trim();
+                    let editName = $('#recipient-name').val().trim();
+                    let editSlug = $('#message-text').val().trim();
+                    $.ajax({
+                        type:'post',
+                        url:BigNew.category_edit,
+                        data:{
+                            id:editId,
+                            name:editName,
+                            slug:editSlug
+                        },
+                        success:function(backData){
+                            if(backData.code == 200){
+                                $('#myModal').modal('hide');
+                                getData();
+                            }
+                        }
+                    })
+                }
+                
+            })
+
+            // 四 给模态框中取消按钮设置一个事件,用reset方法把模态框中的form表单清空
+            $('.btn-cancel').on('click',function(){
+                $('#myModal form')[0].reset();
             })
         })
     </script>

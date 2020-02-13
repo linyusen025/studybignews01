@@ -91,7 +91,7 @@
             <td>{{$value.slug}}</td>
             <td class="text-center">
                 <a href="javascript:void(0)" data-id={{$value.id}} data-toggle="modal" data-target="#myModal" class=" btn btn-info btn-xs">编辑</a>
-                <a href="javascript:void(0)" data-id={{$value.id}} class="btn btn-danger btn-xs">删除</a>
+                <a href="javascript:void(0)" data-id={{$value.id}} class="btn btn-danger btn-xs btn-delete">删除</a>
             </td>
         </tr>
         {{/each}}
@@ -126,6 +126,7 @@
                 } else {
                     $('#myModalLabel').text('编辑类别');
                     $('#btnAddEdit').text('编辑').addClass('btn-primary').removeClass('btn-success');
+
                     // 编辑第一步,获取隐藏域里面的内容
                     $('#editId').val($(e.relatedTarget).attr('data-id'));
                     $('#recipient-name').val($(e.relatedTarget).parent().prev().prev().text().trim());
@@ -138,7 +139,7 @@
             // 新增,获取文本框的内容,发送ajax请求
             // 请求成功,隐藏模态框,重新加载数据,清空输入框
             // 四如果被点击的是编辑
-            // 编辑,获取要编辑的类名和别名,id,发送ajax请求
+            // 编辑,获取编辑的类名和别名,id,发送ajax请求
             // 请求成功,隐藏模态框,重新加载数据,清空输入框
             $('#btnAddEdit').on('click', function () {
                 if ($(this).hasClass('btn-success')) {
@@ -186,6 +187,32 @@
             // 四 给模态框中取消按钮设置一个事件,用reset方法把模态框中的form表单清空
             $('.btn-cancel').on('click',function(){
                 $('#myModal form')[0].reset();
+            })
+
+
+            // 五,给删除按钮设置点击事件(委托注册)
+            // 确定删除 获取被点击的id
+            // 发送ajax请求,删除成功后重新加载数据
+            $('tbody').on('click','.btn-delete',function(){
+                let that = $(this)
+                if(confirm('确定删除吗')){
+                    let deleteId = $(this).attr('data-id');
+                    $.ajax({
+                        type:'post',
+                        url:BigNew.category_delete,
+                        data:{
+                            id:deleteId
+                        },
+                        success:function(backData){
+                            if(backData.code == 204){
+                                // 第一种方法
+                                // getData();
+                                // 第二种方法
+                                that.parent().parent().remove();
+                            }
+                        }
+                    })
+                }
             })
         })
     </script>

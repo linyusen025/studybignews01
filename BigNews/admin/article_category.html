@@ -113,7 +113,7 @@
                         }
                     }
                 })
-            }
+            };
 
             // 二,使用模态框,
             // 先判断到底是新增按钮还是编辑按钮show.bs.modal方法调用后立即触发该事件
@@ -132,7 +132,9 @@
                     $('#recipient-name').val($(e.relatedTarget).parent().prev().prev().text().trim());
                     $('#message-text').val($(e.relatedTarget).parent().prev().text().trim());
                 }
-            })
+            });
+
+            
 
             // 三给模态框中的 新增/编辑 按钮设置点击事件
             // 判断被点击的是新增还是编辑,如果是新增
@@ -156,12 +158,12 @@
                             if (backData.code == 201) {
                                 $('#myModal').modal('hide');
                                 getData();
-                                $('#recipient-name').val();
-                                $('#message-text').val()
+                                $('#recipient-name').val("");
+                                $('#message-text').val("")
                             }
                         }
                     })
-                }else{
+                } else {
                     let editId = $('#editId').val().trim();
                     let editName = $('#recipient-name').val().trim();
                     let editSlug = $('#message-text').val().trim();
@@ -170,47 +172,47 @@
                     // let data = $('#myModal form').serialize();
                     // console.log(data);
                     $.ajax({
-                        type:'post',
-                        url:BigNew.category_edit,
-                        data:{
-                            id:editId,
-                            name:editName,
-                            slug:editSlug
+                        type: 'post',
+                        url: BigNew.category_edit,
+                        data: {
+                            id: editId,
+                            name: editName,
+                            slug: editSlug
                         },
                         // 传参使用jQuery的serialize()方法
                         // data:data
-                        success:function(backData){
-                            if(backData.code == 200){
+                        success: function (backData) {
+                            if (backData.code == 200) {
                                 $('#myModal').modal('hide');
                                 getData();
                             }
                         }
                     })
                 }
-                
-            })
 
-            // 四 给模态框中取消按钮设置一个事件,用reset方法把模态框中的form表单清空
-            $('.btn-cancel').on('click',function(){
+            });
+
+             // 四 给模态框中取消按钮设置一个事件,用reset方法把模态框中的form表单清空
+            $('.btn-cancel').on('click', function () {
                 $('#myModal form')[0].reset();
-            })
+            });
 
 
             // 五,给删除按钮设置点击事件(委托注册)
             // 确定删除 获取被点击的id
             // 发送ajax请求,删除成功后重新加载数据
-            $('tbody').on('click','.btn-delete',function(){
+            $('tbody').on('click', '.btn-delete', function () {
                 let that = $(this)
-                if(confirm('确定删除吗')){
+                if (confirm('确定删除吗')) {
                     let deleteId = $(this).attr('data-id');
                     $.ajax({
-                        type:'post',
-                        url:BigNew.category_delete,
-                        data:{
-                            id:deleteId
+                        type: 'post',
+                        url: BigNew.category_delete,
+                        data: {
+                            id: deleteId
                         },
-                        success:function(backData){
-                            if(backData.code == 204){
+                        success: function (backData) {
+                            if (backData.code == 204) {
                                 // 第一种方法
                                 // getData();
                                 // 第二种方法
@@ -219,7 +221,7 @@
                         }
                     })
                 }
-            })
+            });
         })
     </script>
 </body>

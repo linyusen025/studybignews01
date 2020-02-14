@@ -73,25 +73,62 @@
         </div>
     </div>
     <script src="./libs/http.js"></script>
+    <!-- 文章类别模板 -->
     <script id="article_list_temp" type="text/html">
         <option value="">所有分类</option>
         {{each data}}
         <option value="{{$value.id}}"> {{$value.name}} </option>
         {{/each}}
     </script>
+
+    <!-- 文章列表模板 -->
+    <script id="list_temp" type="text/html">
+        {{each data.data}}
+        <tr>
+            <td>{{$value.title}}</td>
+            <td>{{$value.author}}</td>
+            <td>{{$value.category}}</td>
+            <td class="text-center">{{$value.date}}</td>
+            <td class="text-center">{{$value.state}}</td>
+            <td class="text-center">
+                <a href="article_edit.html" data-id={{$value.categoryId}} class="btn btn-default btn-xs">编辑</a>
+                <a href="javascript:void(0);" data-id={{$value.categoryId}} class="btn btn-danger btn-xs delete">删除</a>
+            </td>
+        </tr>
+        {{/each}}
+    </script>
+
     <script>
-        $(function(){
+        $(function () {
             // 一发送ajax请求,获取所有的文章类别,用模板引擎渲染到所有分类下拉菜单中
             $.ajax({
-                    type: 'get',
-                    url: BigNew.category_list,
-                    success: function (backData) {
-                        if(backData.code == 200){
-                            let resListHtml = template('article_list_temp',backData);
-                            $('#selCategory').html(resListHtml);
-                        }
+                type: 'get',
+                url: BigNew.category_list,
+                success: function (backData) {
+                    if (backData.code == 200) {
+                        let resListHtml = template('article_list_temp', backData);
+                        $('#selCategory').html(resListHtml);
                     }
-                })
+                }
+            })
+
+            // 二进入页面,发送ajax请求,获取默认的文章数据列表,用模板引擎渲染到页面上
+            $.ajax({
+                type:'get',
+                url:BigNew.article_query,
+                data:{
+                    type:$('#selCategory').val(),
+                    state:$('#selStatus').val(),
+                    page:1,
+                    perpage:7
+                },
+                success:function(backData){
+                    if(backData.code == 200){
+                       let resHtml = template('list_temp',backData);
+                       $('tbody').html(resHtml);
+                    }
+                }
+            })
         })
     </script>
 </body>

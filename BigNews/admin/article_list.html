@@ -180,6 +180,8 @@
                         if (backData.code == 200) {
                             let resSearHtml = template('list_temp', backData);
                             $('tbody').html(resSearHtml);
+                            // 分页插件,根据筛选出来的条件重新显示总页数
+                            $('#pagination-demo').twbsPagination('changeTotalPages', backData.data.totalPage, 1);
                         }
                     }
                 })

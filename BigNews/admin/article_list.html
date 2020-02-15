@@ -73,6 +73,7 @@
             <!-- 分页插件 -->
             <div class="row text-center">
                 <ul id="pagination-demo" class="pagination-sm"></ul>
+                <p>没有数据</p>
             </div>
         </div>
     </div>
@@ -95,8 +96,8 @@
             <td class="text-center">{{$value.date}}</td>
             <td class="text-center">{{$value.state}}</td>
             <td class="text-center">
-                <a href="article_edit.html" data-id={{$value.categoryId}} class="btn btn-default btn-xs">编辑</a>
-                <a href="javascript:void(0);" data-id={{$value.categoryId}} class="btn btn-danger btn-xs delete">删除</a>
+                <a href="article_edit.html" data-id={{$value.id}} class="btn btn-default btn-xs">编辑</a>
+                <a href="javascript:void(0);" data-id={{$value.id}} class="btn btn-danger btn-xs delete">删除</a>
             </td>
         </tr>
         {{/each}}
@@ -116,11 +117,14 @@
                     }
                 }
             });
+
+            // 设置一个全局变量
+            let pageAll = 1;
             // 二 把获取对应的文章列表信息,封装成一个函数,
             // 1进入页面就发送ajax,成功后额外做分页结构
             // 2.点击分页页码,发送ajax,成功后不再做额外的事情
             // 3.点击筛选按钮,发送ajax,成功后额外做根据动态的总页数,重新生成分页
-            function getAll(pageAll, backAll) {
+            function getData(pageAll, backAll) {
                 $.ajax({
                     type: 'get',
                     url: BigNew.article_query,
@@ -135,15 +139,26 @@
                             let resHtml = template('list_temp', backData);
                             $('tbody').html(resHtml);
                             // 回调函数,额外做的事情需要总的页数,需要把backData作为实参传递
-                            if (backAll != null) {
+                            // 判断文章数据的长度不等于0,与backAll !=null,就显示页签,数据长度=0,就隐藏页签
+                            // 如果总页数=当前页码-1与数据长度=0,那当前页码-=1,重新刷新数据,显示新的页签数
+                            if (backData.data.data.length != 0 && backAll != null) {
+                                $('#pagination-demo').show();
+                                $('#pagination-demo').next().hide();
                                 backAll(backData);
+                            }else if(backData.data.totalPage == pageAll-1 && backData.data.data.length == 0){
+                                pageAll -= 1;
+                                $('#pagination-demo').twbsPagination('changeTotalPages', backData.data.totalPage, pageAll);
+                            }
+                            else if (backData.data.data.length == 0){
+                                $('#pagination-demo').hide();
+                                $('#pagination-demo').next().show();
                             }
                         }
                     }
                 });
             }
             // 三获取所有分类的文章总页码,使用页签插件,调用封装好的ajax请求函数
-            getAll(1, function (backData) {
+            getData(1, function (backData) {
                 $('#pagination-demo').twbsPagination({
                     totalPages: backData.data.totalPage,   //总页数
                     visiblePages: 5,  //每页可见的页数
@@ -153,19 +168,43 @@
                     last: '末页',
                     // 点击页签要触发的事件,event点击页签触发的事件,page当前点击的页码
                     onPageClick: function (event, page) {
-                        getAll(page, null);
+                        pageAll = page;
+                        getData(page, null);
                     }
                 });
             });
             // 三点击筛选按钮获取选择的文章分页,调用封装好的ajax请求函数
             $('#btnSearch').on('click', function (e) {
                 e.preventDefault();
-                getAll(1, function (backData) {
+                getData(1, function (backData) {
                     // 分页插件,根据筛选出来的条件重新生成显示总页数
                     $('#pagination-demo').twbsPagination('changeTotalPages', backData.data.totalPage, 1);
 
                 })
             });
+
+            // 四,给删除按钮设置点击事件(委托注册)
+            // 根据删除按钮里的自定义属性data-id来获取当前文章id
+            // 发送ajax请求完成删除,重新刷新页面,根据当前的总页数显示在当前页签
+            $('tbody').on('click', '.delete', function () {
+                if (confirm('确定要删除吗')) {
+                    let delId = $(this).attr('data-id');
+                    $.ajax({
+                        type: 'post',
+                        url: BigNew.article_delete,
+                        data: {
+                            id: delId
+                        },
+                        success: function (backData) {
+                            if (backData.code == 204) {
+                                getData(pageAll,function(backData){
+                                    $('#pagination-demo').twbsPagination('changeTotalPages', backData.data.totalPage, pageAll);
+                                });
+                            }
+                        }
+                    })
+                }
+            })
 
 
             // 二进入页面,发送ajax请求,获取默认的文章数据列表,用模板引擎渲染到页面上

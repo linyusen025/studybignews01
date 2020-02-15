@@ -102,6 +102,7 @@
         {{/each}}
     </script>
 
+
     <script>
         $(function () {
             // 一发送ajax请求,获取所有的文章类别,用模板引擎渲染到所有分类下拉菜单中
@@ -115,77 +116,128 @@
                     }
                 }
             });
-
-            // 二进入页面,发送ajax请求,获取默认的文章数据列表,用模板引擎渲染到页面上
-            // 分页插件
-            $.ajax({
-                type: 'get',
-                url: BigNew.article_query,
-                data: {
-                    type: $('#selCategory').val(),
-                    state: $('#selStatus').val(),
-                    page: 1,
-                    perpage: 7
-                },
-                success: function (backData) {
-                    if (backData.code == 200) {
-                        let resHtml = template('list_temp', backData);
-                        $('tbody').html(resHtml);
-                        // 分页插件
-                        $('#pagination-demo').twbsPagination({
-                            totalPages: backData.data.totalPage,   //总页数
-                            visiblePages: 5,  //每页可见的页数
-                            first: '首页',
-                            prev: '上一页',
-                            next: '下一页',
-                            last: '末页',
-                            // 点击页签要触发的事件,event点击页签触发的事件,page当前点击的页码
-                            onPageClick: function (event, page) {
-                                $.ajax({
-                                    type: 'get',
-                                    url: BigNew.article_query,
-                                    data: {
-                                        type: $('#selCategory').val(),
-                                        state: $('#selStatus').val(),
-                                        page: page,
-                                        perpage: 7
-                                    },
-                                    success: function (backData) {
-                                        if (backData.code == 200) {
-                                            let resHtml = template('list_temp', backData);
-                                            $('tbody').html(resHtml);
-                                        }
-                                    }
-                                });
-
-                            }
-                        });
-                    }
-                }
-            });
-
-            // 三,给筛选按钮设置点击事件,阻止默认跳转,获取复合要求的文章
-            $('#btnSearch').on('click', function (e) {
-                e.preventDefault();
+            // 二 把获取对应的文章列表信息,封装成一个函数,
+            // 1进入页面就发送ajax,成功后额外做分页结构
+            // 2.点击分页页码,发送ajax,成功后不再做额外的事情
+            // 3.点击筛选按钮,发送ajax,成功后额外做根据动态的总页数,重新生成分页
+            function getAll(pageAll, backAll) {
                 $.ajax({
                     type: 'get',
                     url: BigNew.article_query,
                     data: {
                         type: $('#selCategory').val(),
                         state: $('#selStatus').val(),
-                        page: 1,
-                        perpage: 7
+                        page: pageAll,
+                        perpage: 6
                     },
                     success: function (backData) {
                         if (backData.code == 200) {
-                            let resSearHtml = template('list_temp', backData);
-                            $('tbody').html(resSearHtml);
-                            // 分页插件,根据筛选出来的条件重新显示总页数
-                            $('#pagination-demo').twbsPagination('changeTotalPages', backData.data.totalPage, 1);
+                            let resHtml = template('list_temp', backData);
+                            $('tbody').html(resHtml);
+                            // 回调函数,额外做的事情需要总的页数,需要把backData作为实参传递
+                            if (backAll != null) {
+                                backAll(backData);
+                            }
                         }
                     }
+                });
+            }
+            // 三获取所有分类的文章总页码,使用页签插件,调用封装好的ajax请求函数
+            getAll(1, function (backData) {
+                $('#pagination-demo').twbsPagination({
+                    totalPages: backData.data.totalPage,   //总页数
+                    visiblePages: 5,  //每页可见的页数
+                    first: '首页',
+                    prev: '上一页',
+                    next: '下一页',
+                    last: '末页',
+                    // 点击页签要触发的事件,event点击页签触发的事件,page当前点击的页码
+                    onPageClick: function (event, page) {
+                        getAll(page, null);
+                    }
+                });
+            });
+            // 三点击筛选按钮获取选择的文章分页,调用封装好的ajax请求函数
+            $('#btnSearch').on('click', function (e) {
+                e.preventDefault();
+                getAll(1, function (backData) {
+                    // 分页插件,根据筛选出来的条件重新生成显示总页数
+                    $('#pagination-demo').twbsPagination('changeTotalPages', backData.data.totalPage, 1);
+
                 })
             });
+
+
+            // 二进入页面,发送ajax请求,获取默认的文章数据列表,用模板引擎渲染到页面上
+            // 分页插件
+            // $.ajax({
+            //     type: 'get',
+            //     url: BigNew.article_query,
+            //     data: {
+            //         type: $('#selCategory').val(),
+            //         state: $('#selStatus').val(),
+            //         page: 1,
+            //         perpage: 6
+            //     },
+            //     success: function (backData) {
+            //         if (backData.code == 200) {
+            //             let resHtml = template('list_temp', backData);
+            //             $('tbody').html(resHtml);
+            //             // 分页插件
+            //             $('#pagination-demo').twbsPagination({
+            //                 totalPages: backData.data.totalPage,   //总页数
+            //                 visiblePages: 5,  //每页可见的页数
+            //                 first: '首页',
+            //                 prev: '上一页',
+            //                 next: '下一页',
+            //                 last: '末页',
+            //                 // 点击页签要触发的事件,event点击页签触发的事件,page当前点击的页码
+            //                 onPageClick: function (event, page) {
+            //                     $.ajax({
+            //                         type: 'get',
+            //                         url: BigNew.article_query,
+            //                         data: {
+            //                             type: $('#selCategory').val(),
+            //                             state: $('#selStatus').val(),
+            //                             page: page,
+            //                             perpage: 6
+            //                         },
+            //                         success: function (backData) {
+            //                             if (backData.code == 200) {
+            //                                 let resHtml = template('list_temp', backData);
+            //                                 $('tbody').html(resHtml);
+            //                             }
+            //                         }
+            //                     });
+
+            //                 }
+            //             });
+            //         }
+            //     }
+            // });
+
+            // 三,给筛选按钮设置点击事件,阻止默认跳转,获取复合要求的文章
+            // $('#btnSearch').on('click', function (e) {
+            //     e.preventDefault();
+            //     $.ajax({
+            //         type: 'get',
+            //         url: BigNew.article_query,
+            //         data: {
+            //             type: $('#selCategory').val(),
+            //             state: $('#selStatus').val(),
+            //             page: 1,
+            //             perpage: 6
+            //         },
+            //         success: function (backData) {
+            //             if (backData.code == 200) {
+            //                 let resSearHtml = template('list_temp', backData);
+            //                 $('tbody').html(resSearHtml);
+            //                 // 分页插件,根据筛选出来的条件重新显示总页数
+            //                 $('#pagination-demo').twbsPagination('changeTotalPages', backData.data.totalPage, 1);
+            //             }
+            //         }
+            //     })
+            // });
         })
     </script>
 </body>

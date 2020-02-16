@@ -121,7 +121,7 @@
 
             // 五,编辑第一步,获取编辑前的内容
             let editId = window.location.search.split('=')[1];
-            setInterval(function () {
+            setTimeout(function () {
                 $.ajax({
                     type: 'get',
                     url: BigNew.article_search,

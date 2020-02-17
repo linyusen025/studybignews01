@@ -11,6 +11,8 @@
   <link rel="stylesheet" href="css/iconfont.css">
   <link rel="stylesheet" href="css/main.css">
   <script src="./libs/jquery-1.12.4.min.js"></script>
+  <script src="./libs/bootstrap/js/bootstrap.min.js"></script>
+  <script src="./libs/jquery.twbsPagination.js"></script>
   <script src="./libs/template-web.js"></script>
 </head>
 
@@ -142,7 +144,7 @@
         </tbody>
       </table>
       <div class="row text-center">
-        <ul class="pagination pagination-sm">
+        <!-- <ul class="pagination pagination-sm">
           <li class="page-item first disabled"><a href="#" class="page-link">首页</a></li>
           <li class="page-item prev disabled"><a href="#" class="page-link">上一页</a></li>
           <li class="page-item active"><a href="#" class="page-link">1</a></li>
@@ -154,7 +156,7 @@
           <li class="page-item"><a href="#" class="page-link">7</a></li>
           <li class="page-item next"><a href="#" class="page-link">下一页</a></li>
           <li class="page-item last"><a href="#" class="page-link">尾页</a></li>
-        </ul>
+        </ul> -->
         <ul id="pagination" class="pagination-sm"></ul>
       </div>
 
@@ -187,24 +189,49 @@
   <script src="./libs/http.js"></script>
   <script>
     $(function () {
-      // 一进入页面就获取评论数据信息,渲染到页面上
-      getData();
-      function getData() {
+      // 设置全局变量
+      let myPage = 1
+      // 封装函数
+      function getData(myPage, callBack) {
         $.ajax({
           type: 'get',
           url: BigNew.comment_list,
           data: {
-            page: 1,
-            perpage: 6
+            page: myPage,
+            perpage: 3
           },
           success: function (backData) {
             if (backData.code == 200) {
               let resHtml = template('comment_temp', backData);
               $('tbody').html(resHtml);
+
+              if (callBack != null && backData.data.data.length != 0) {
+                callBack(backData);
+              }else if(backData.data.data.length == 0 && backData.data.totalPage == myPage-1) {
+                myPage -= 1;
+                $('#pagination').twbsPagination('changeTotalPages', backData.data.totalPage, myPage);
+              }
             }
           }
         });
       }
+      // 一进入页面就获取评论数据信息,渲染到页面上
+      getData(1, function (backData) {
+        $('#pagination').twbsPagination({
+          totalPages: backData.data.totalPage,   //总页数
+          visiblePages: 5,  //每页可见的页数
+          first: '首页',
+          prev: '上一页',
+          next: '下一页',
+          last: '末页',
+          // 点击页签要触发的事件,event点击页签触发的事件,page当前点击的页码
+          onPageClick: function (event, page) {
+            myPage = page;
+            getData(page,null);
+          }
+        });
+
+      });
 
       // 二 给批准按钮设置点击事件(委托),
       $('tbody').on('click', '.btn-approve', function () {
@@ -218,7 +245,7 @@
           success: function (backData) {
             if (backData.code == 200) {
               alert('审核通过');
-              getData();
+              getData(myPage,null);
             }
           }
         })
@@ -235,7 +262,7 @@
           success:function(backData){
             if(backData.code == 200){
               alert('拒绝通过');
-              getData();
+              getData(myPage,null);
             }
           }
         })
@@ -252,7 +279,9 @@
           success:function(backData){
             if(backData.code == 200){
               alert('删除成功');
-              getData();
+              getData(myPage,function(backData){
+                $('#pagination').twbsPagination('changeTotalPages', backData.data.totalPage, myPage);
+              });
             }
           }
         })

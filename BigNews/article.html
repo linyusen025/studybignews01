@@ -205,10 +205,98 @@
         <p>电话：0755-****888 粤ICP备*******8号</p>
     </div>
 
+    <!-- 模板 -->
+    <script id="arr_temp" type="text/html">
+        <div class="article_info">{{$value.author}} 发布于 {{$value.date}}&nbsp;&nbsp;&nbsp;分类: {{$value.category}}&nbsp;&nbsp;&nbsp;阅读:
+            ({{$value.read}})&nbsp;&nbsp;&nbsp;评论: ({{$value.comments}})</div>
+    </script>
+
+    <!-- 评论列表模板 -->
+    <script id="comment_temp" type="text/html">
+        {{each data}}
+        <div class="comment_detail_list">
+            <div class="person_pic fl">{{$value.author.substring(0,1)}}</div>
+            <div class="name_time fl"><b>{{$value.author}}</b><span>{{$value.time}}</span></div>
+            <div class="comment_text fl">
+                {{$value.intro}}
+            </div>
+        </div>
+        {{/each}}
+    </script>
     <!-- 引入模板引擎js文件 -->
     <script src="./js/template-web.js"></script>
     <script src="./js/jquery-1.12.4.min.js"></script>
 
+    <script>
+        $(function () {
+            // 一进入详情页面就获取被点击文章传进来的id,
+            let articleId = window.location.search.split('=')[1];
+            // console.log(articleId);
+            if (articleId == "") {
+                window.location.href = './index.html';
+            } else {
+                $.ajax({
+                    url: 'http://localhost:8080/api/v1/index/article',
+                    data: {
+                        id: articleId
+                    },
+                    success: function (backData) {
+                        if (backData.code == 200) {
+                            $('.breadcrumb').children('a').eq(1).text(backData.data.category);
+                            $('.article_title').text(backData.data.title);
+                            $('.article_con').html(backData.data.content);
+                            $('.article_links>a').eq(0).text(backData.data.prev.title);
+                            $('.article_links>a').eq(0).attr('href', './article.html?id=' + backData.data.prev.id);
+                            if (backData.data.next != null) {
+                                $('.article_links>a').eq(1).text(backData.data.next.title);
+                                $('.article_links>a').eq(1).attr('href', './article.html?id=' + backData.data.next.id);
+                            } else {
+                                $('.article_links>a').eq(1).text('没有下一篇');
+                            }
+                            // let resHtml = template('arr_temp',backData);
+                            // $('.article_info').html(resHtml);
+                        }
+                    }
+                });
+
+                // 获取评论
+                $.ajax({
+                    type:'get',
+                    url:'http://localhost:8080/api/v1/index/latest_comment',
+                    success:function(backData){
+                        if(backData.code == 200){
+                            $('.comment_count').text(backData.data.length+'条评论');
+                            let resHtml = template('comment_temp',backData);
+                            $('.comment_list_con').html(resHtml);
+                        }
+                    }
+                });
+
+                // 发表评论
+                $('.comment_sub').on('click',function(e){
+                    e.preventDefault();
+                    let comment_name = $('.comment_name').val().trim();
+                    let comment_input = $('.comment_input').val().trim();
+                    $.ajax({
+                        type:'post',
+                        url:'http://localhost:8080/api/v1/index/post_comment',
+                        data:{
+                            author:comment_name,
+                            content:comment_input,
+                            articleId:articleId
+                        },
+                        success:function(backData){
+                            if(backData.code == 201){
+                                alert('评论发表成功,待管理员审核');
+                                $('.comment_name').val("");
+                                $('.comment_input').val("");
+                            }
+                        }
+                    })
+                });
+            }
+        })
+    </script>
 </body>
 
 </html>

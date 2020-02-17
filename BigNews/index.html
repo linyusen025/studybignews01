@@ -271,6 +271,13 @@
        {{/each}} 
     </script>
 
+    <!-- 六 文章类别显示 模板 -->
+    <script id="category_temp" type="text/html">
+        {{each data}}
+        <li><a href="./list.html?id={{$value.id}}">{{$value.name}}</a></li>
+        {{/each}}
+    </script>
+
     <!-- 导入模板引擎js文件 -->
     <script src="./js/template-web.js"></script>
     <!-- 引入jq文件 -->
@@ -338,7 +345,33 @@
                         $('.guanzhu_list').html(resHtml);
                     }
                 }
-            })
+            });
+
+            // 六 文章类别显示
+            $.ajax({
+                type:'get',
+                url:'http://localhost:8080/api/v1/index/category',
+                success:function(backData){
+                    if(backData.code == 200){
+                        let resHtml = template('category_temp',backData);
+                        // 竖排显示类别
+                        $('ul.level_two').html('<li class="up"></li>'+resHtml);
+                        // 横排显示类别
+                        $('ul.left_menu.fl').html(resHtml);
+                    }
+                }
+            });
+
+            // 七 文章搜索
+            $('.search_btn').on('click',function(){
+                let searchTxt = $('.search_txt').val().trim();
+                if(searchTxt == ""){
+                    alert('搜索内容不能为空');
+                    return;
+                }else{
+                    window.location.href = './list.html?search='+ searchTxt;
+                }
+            });
         })
     </script>
 </body>

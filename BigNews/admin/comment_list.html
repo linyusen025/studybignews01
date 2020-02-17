@@ -160,6 +160,105 @@
 
     </div>
   </div>
+  <!-- 评论列表数据 模板 -->
+  <script id="comment_temp" type="text/html">
+    {{each data.data}}
+    {{if $value.state == '待审核'}}
+    <tr class= "danger">
+      {{else}}
+    <tr>
+      {{/if}}
+      <td>{{$value.author}}</td>
+      <td>{{$value.content}}</td>
+      <td>{{$value.title}}</td>
+      <td>{{$value.date}}  {{$value.time}} </td>
+      <td>{{$value.state}}</td>
+      <td class="text-center">
+        {{if $value.state == '待审核'}}
+        <a href="javascript:void(0);;" data-id={{$value.id}} class="btn btn-info btn-xs btn-approve">批准</a>
+        {{else if $value.state == '已通过'}}
+        <a href="javascript:void(0);;" data-id={{$value.id}} class="btn btn-warning btn-xs btn-refuse">拒绝</a>
+        {{/if}}
+        <a href="javascript:void(0);;" data-id={{$value.id}} class="btn btn-danger btn-xs btn-delete">删除</a>
+      </td>
+    </tr>
+    {{/each}}
+  </script>
+  <script src="./libs/http.js"></script>
+  <script>
+    $(function () {
+      // 一进入页面就获取评论数据信息,渲染到页面上
+      getData();
+      function getData() {
+        $.ajax({
+          type: 'get',
+          url: BigNew.comment_list,
+          data: {
+            page: 1,
+            perpage: 6
+          },
+          success: function (backData) {
+            if (backData.code == 200) {
+              let resHtml = template('comment_temp', backData);
+              $('tbody').html(resHtml);
+            }
+          }
+        });
+      }
+
+      // 二 给批准按钮设置点击事件(委托),
+      $('tbody').on('click', '.btn-approve', function () {
+        let appId = $(this).attr('data-id');
+        $.ajax({
+          type: 'post',
+          url: BigNew.comment_pass,
+          data: {
+            id: appId
+          },
+          success: function (backData) {
+            if (backData.code == 200) {
+              alert('审核通过');
+              getData();
+            }
+          }
+        })
+      });
+      // 三,给拒绝按钮设置点击事件(委托)
+      $('tbody').on('click','.btn-refuse',function(){
+        let appId = $(this).attr('data-id');
+        $.ajax({
+          type:'post',
+          url:BigNew.comment_reject,
+          data:{
+            id:appId
+          },
+          success:function(backData){
+            if(backData.code == 200){
+              alert('拒绝通过');
+              getData();
+            }
+          }
+        })
+      });
+      // 四,给删除按钮设置点击事件(委托)
+      $('tbody').on('click','.btn-delete',function(){
+        let appId = $(this).attr('data-id');
+        $.ajax({
+          type:'post',
+          url:BigNew.comment_delete,
+          data:{
+            id:appId
+          },
+          success:function(backData){
+            if(backData.code == 200){
+              alert('删除成功');
+              getData();
+            }
+          }
+        })
+      });
+    })
+  </script>
 </body>
 
 </html>

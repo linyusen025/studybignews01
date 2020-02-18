@@ -288,7 +288,7 @@
                     success: function (backData) {
                         if (backData.code == 200) {
                             let resHtml = template('search_temp', backData);
-                            $('.left_con.setfr').html('<div class="list_title"><h3>搜索词:{{value2}}</h3></div>' + resHtml);
+                            $('.left_con.setfr').html('<div class="list_title"><h3>搜索词:'+ value2 +'</h3></div>' + resHtml);
 
                         }
                     }

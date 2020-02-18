@@ -262,8 +262,12 @@
                 // 获取评论
                 $.ajax({
                     type: 'get',
-                    url: 'http://localhost:8080/api/v1/index/latest_comment',
+                    url: 'http://localhost:8080/api/v1/index/get_comment',
+                    data:{
+                        articleId:articleId
+                    },
                     success: function (backData) {
+                        console.log(backData);
                         if (backData.code == 200) {
                             $('.comment_count').text(backData.data.length + '条评论');
                             let resHtml = template('comment_temp', backData);

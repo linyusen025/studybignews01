@@ -207,8 +207,8 @@
 
     <!-- 模板 -->
     <script id="arr_temp" type="text/html">
-        <div class="article_info">{{$value.author}} 发布于 {{$value.date}}&nbsp;&nbsp;&nbsp;分类: {{$value.category}}&nbsp;&nbsp;&nbsp;阅读:
-            ({{$value.read}})&nbsp;&nbsp;&nbsp;评论: ({{$value.comments}})</div>
+        {{data.author}} 发布于 {{data.date}}分类: {{data.category}}
+        阅读:({{data.read}})  评论: ({{data.comments}})
     </script>
 
     <!-- 评论列表模板 -->
@@ -253,40 +253,40 @@
                             } else {
                                 $('.article_links>a').eq(1).text('没有下一篇');
                             }
-                            // let resHtml = template('arr_temp',backData);
-                            // $('.article_info').html(resHtml);
+                            let resHtml = template('arr_temp', backData);
+                            $('.article_info').html(resHtml);
                         }
                     }
                 });
 
                 // 获取评论
                 $.ajax({
-                    type:'get',
-                    url:'http://localhost:8080/api/v1/index/latest_comment',
-                    success:function(backData){
-                        if(backData.code == 200){
-                            $('.comment_count').text(backData.data.length+'条评论');
-                            let resHtml = template('comment_temp',backData);
+                    type: 'get',
+                    url: 'http://localhost:8080/api/v1/index/latest_comment',
+                    success: function (backData) {
+                        if (backData.code == 200) {
+                            $('.comment_count').text(backData.data.length + '条评论');
+                            let resHtml = template('comment_temp', backData);
                             $('.comment_list_con').html(resHtml);
                         }
                     }
                 });
 
                 // 发表评论
-                $('.comment_sub').on('click',function(e){
+                $('.comment_sub').on('click', function (e) {
                     e.preventDefault();
                     let comment_name = $('.comment_name').val().trim();
                     let comment_input = $('.comment_input').val().trim();
                     $.ajax({
-                        type:'post',
-                        url:'http://localhost:8080/api/v1/index/post_comment',
-                        data:{
-                            author:comment_name,
-                            content:comment_input,
-                            articleId:articleId
+                        type: 'post',
+                        url: 'http://localhost:8080/api/v1/index/post_comment',
+                        data: {
+                            author: comment_name,
+                            content: comment_input,
+                            articleId: articleId
                         },
-                        success:function(backData){
-                            if(backData.code == 201){
+                        success: function (backData) {
+                            if (backData.code == 201) {
                                 alert('评论发表成功,待管理员审核');
                                 $('.comment_name').val("");
                                 $('.comment_input').val("");
